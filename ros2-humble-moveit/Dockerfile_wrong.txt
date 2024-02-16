@@ -1,0 +1,88 @@
+FROM osrf/ros:humble-desktop-full-jammy
+
+#SHELL ["/bin/bash", "-c"] 
+
+RUN apt-get update && apt-get install -y \
+    dbus-x11 \ 
+    at-spi2-core \
+    locales
+
+# Setup
+RUN locale-gen en_US en_US.UTF-8
+RUN update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+RUN export LANG=en_US.UTF-8
+
+# General Setup
+RUN apt-get install -y \
+    software-properties-common \
+    git \
+    python3-pip \
+    nautilus \
+    gnome-terminal \
+    gedit
+
+# ROS+Gazebo Setup
+RUN apt-get install -y \
+    ros-humble-rqt \
+    ros-humble-ros2-control \
+    ros-humble-controller-manager \
+    ros-humble-ros2-controllers \
+    ros-humble-rqt-tf-tree \
+    ros-humble-gazebo-ros2-control
+
+RUN pip install xacro
+
+RUN apt-get install -y \
+    ros-humble-gazebo-plugins \
+    ros-humble-rmw-cyclonedds-cpp
+
+RUN export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+
+RUN apt-get install -y \
+    ros-humble-nav2-bringup \
+    ros-humble-slam-toolbox \
+    ros-humble-nav2-map-server \
+    ros-humble-twist-mux \
+    ros-humble-nav2-bringup \
+    ros-humble-xacro \
+    ros-humble-joint-state-publisher \
+    ros-humble-joint-state-publisher-gui
+
+
+# Install MoveIt
+SHELL ["/bin/bash", "-c"] 
+#RUN cd ~/ros2_ws && source /opt/ros/humble/setup.bash
+RUN source /opt/ros/humble/setup.bash
+RUN apt-get install -y python3-rosdep
+# Make sure you have the most up to date packages:
+# RUN rosdep init && rosdep update
+RUN rosdep update
+RUN apt-get update && apt-get dist-upgrade -y
+
+# Install Colcon the ROS 2 build system with mixin:
+RUN apt-get install -y \
+    python3-colcon-common-extensions \
+    python3-colcon-mixin
+#RUN colcon mixin add default https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml
+RUN colcon mixin update default
+
+RUN apt-get install -y python3-vcstool
+
+# Project cloning ... right now only for testing
+RUN mkdir -p ~/moveit2_ws/src
+RUN cd ~/moveit2_ws/src && git clone --branch humble https://github.com/ros-planning/moveit2_tutorials
+
+RUN vcs import < moveit2_tutorials/moveit2_tutorials.repos
+
+RUN sudo apt-get update && rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y
+
+RUN cd ~/moveit2_ws && source /opt/ros/humble/setup.bash && colcon build --mixin release
+
+SHELL ["/bin/bash", "-c"] 
+RUN cd ~/ros2_ws && source /opt/ros/humble/setup.bash
+
+
+
+
+RUN echo "Done, now execute:"
+RUN echo "cd ~/ros2_ws/src && ./ros_exam_auto.sh"
