@@ -53,7 +53,8 @@ RUN apt-get install -y \
 # Project cloning ... right now only for testing
 RUN mkdir -p ~/ros2_ws/src
 #RUN cd ~/ros2_ws/src && git clone --branch ros2-humble-docker https://github.com/scarecrow3773/mobile_robotics_maze .
-ADD edx-course-files ~/ros2_ws/src/
+RUN cd ~/ros2_ws/src
+COPY edx-course-files src
 
 
 # ROS sourcing ...
@@ -65,3 +66,7 @@ RUN cd ~/ros2_ws && source /opt/ros/humble/setup.bash && colcon build
 
 RUN echo "Done, now execute:"
 #RUN echo "cd ~/ros2_ws/src && ./ros_exam_auto.sh"
+
+
+# docker build -t r1_ros_edx_course .  
+# docker run -e DISPLAY=host.docker.internal:0.0 -e LIBGL_ALWAYS_INDIRECT=0 --gpus all -it r1_ros_edx_course  
