@@ -1,0 +1,67 @@
+FROM osrf/ros:humble-desktop-full-jammy
+
+#SHELL ["/bin/bash", "-c"] 
+
+RUN apt-get update && apt-get install -y \
+    dbus-x11 \ 
+    at-spi2-core \
+    locales
+
+# Setup
+RUN locale-gen en_US en_US.UTF-8
+RUN update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+RUN export LANG=en_US.UTF-8
+
+# General Setup
+RUN apt-get install -y \
+    software-properties-common \
+    git \
+    python3-pip \
+    nautilus \
+    gnome-terminal \
+    gedit
+
+# ROS+Gazebo Setup
+RUN apt-get install -y \
+    ros-humble-rqt \
+    ros-humble-ros2-control \
+    ros-humble-controller-manager \
+    ros-humble-ros2-controllers \
+    ros-humble-rqt-tf-tree \
+    ros-humble-gazebo-ros2-control
+
+RUN pip install xacro
+
+RUN apt-get install -y \
+    ros-humble-gazebo-plugins \
+    ros-humble-rmw-cyclonedds-cpp
+
+RUN export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+
+RUN apt-get install -y \
+    ros-humble-nav2-bringup \
+    ros-humble-slam-toolbox \
+    ros-humble-nav2-map-server \
+    ros-humble-twist-mux \
+    ros-humble-nav2-bringup \
+    ros-humble-xacro \
+    ros-humble-joint-state-publisher \
+    ros-humble-joint-state-publisher-gui
+
+
+
+# Project cloning ... right now only for testing
+RUN mkdir -p ~/ros2_ws/src
+#RUN cd ~/ros2_ws/src && git clone --branch ros2-humble-docker https://github.com/scarecrow3773/mobile_robotics_maze .
+ADD edx-course-files ~/ros2_ws/src/
+
+
+# ROS sourcing ...
+SHELL ["/bin/bash", "-c"] 
+# Colcon build in docker is a wee bitch: "RUN source /opt/ros/humble/setup.bash" before "RUN colcon build" is not enough
+RUN cd ~/ros2_ws && source /opt/ros/humble/setup.bash && colcon build
+#RUN export GAZEBO_MODEL_PATH=~/ros2_ws/src/mobile_robotics_hschoon/meshes
+#RUN cd ~/ros2_ws/src && chmod +x ros_exam_auto.sh
+
+RUN echo "Done, now execute:"
+#RUN echo "cd ~/ros2_ws/src && ./ros_exam_auto.sh"
