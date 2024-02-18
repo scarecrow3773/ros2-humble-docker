@@ -1,72 +1,44 @@
-FROM osrf/ros:humble-desktop-full-jammy
+# This is an auto generated Dockerfile for ros:desktop-full
+# generated from docker_images/create_ros_image.Dockerfile.em
+FROM osrf/ros:noetic-desktop-focal
 
-#SHELL ["/bin/bash", "-c"] 
+# install ros packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-noetic-desktop-full=1.5.0-1* \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y \
-    dbus-x11 \ 
-    at-spi2-core \
-    locales
+RUN apt-get update && sudo apt-get install -y git \
+    lsb-release \
+    wget \
+    gnupg
 
-# Setup
-RUN locale-gen en_US en_US.UTF-8
-RUN update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
-RUN export LANG=en_US.UTF-8
+#RUN apt-get update && apt-get upgrade -y
 
-# General Setup
-RUN apt-get install -y \
-    software-properties-common \
-    git \
-    python3-pip \
-    nautilus \
-    gnome-terminal \
-    gedit
+#RUN apt-get remove libignition-math6 libignition-math6-dev
+#RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+#RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+#RUN apt-get update
+#RUN apt-get install -y libignition-math5 libignition-math5-dev
 
-# ROS+Gazebo Setup
-RUN apt-get install -y \
-    ros-humble-rqt \
-    ros-humble-ros2-control \
-    ros-humble-controller-manager \
-    ros-humble-ros2-controllers \
-    ros-humble-rqt-tf-tree \
-    ros-humble-gazebo-ros2-control
-
-RUN pip install xacro
-
-RUN apt-get install -y \
-    ros-humble-gazebo-plugins \
-    ros-humble-rmw-cyclonedds-cpp
-
-RUN export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-
-RUN apt-get install -y \
-    ros-humble-nav2-bringup \
-    ros-humble-slam-toolbox \
-    ros-humble-nav2-map-server \
-    ros-humble-twist-mux \
-    ros-humble-nav2-bringup \
-    ros-humble-xacro \
-    ros-humble-joint-state-publisher \
-    ros-humble-joint-state-publisher-gui
-
-
-
+RUN echo "Machs nochmal 11"
 # Project cloning ... right now only for testing
-RUN mkdir -p ~/ros2_ws/src
-#RUN cd ~/ros2_ws/src && git clone --branch ros2-humble-docker https://github.com/scarecrow3773/mobile_robotics_maze .
-RUN cd ~/ros2_ws/src
-COPY edx-course-files src
+RUN mkdir -p ~/catkin_ws/src
+RUN cd ~/catkin_ws/src && git clone https://github.com/scarecrow3773/ros2-edx-files .
+RUN cd ~/catkin_ws/src && git clone https://github.com/ros-planning/moveit_msgs.git
+RUN cd ~/catkin_ws/src && git clone --branch noetic-devel https://github.com/wg-perception/object_recognition_msgs.git
+RUN cd ~/catkin_ws/src && git clone --branch melodic-devel https://github.com/OctoMap/octomap_msgs.git
+
+RUN apt install -y python3-catkin-tools
+SHELL ["/bin/bash", "-c"] 
+RUN cd ~/catkin_ws && source /opt/ros/noetic/setup.bash && catkin build
 
 
 # ROS sourcing ...
 SHELL ["/bin/bash", "-c"] 
 # Colcon build in docker is a wee bitch: "RUN source /opt/ros/humble/setup.bash" before "RUN colcon build" is not enough
-RUN cd ~/ros2_ws && source /opt/ros/humble/setup.bash && colcon build
-#RUN export GAZEBO_MODEL_PATH=~/ros2_ws/src/mobile_robotics_hschoon/meshes
-#RUN cd ~/ros2_ws/src && chmod +x ros_exam_auto.sh
+#RUN cd ~/catkin_ws && source /opt/ros/noetic/setup.bash && catkin_make
+#RUN cd ~/catkin_ws && source /opt/ros/noetic/setup.bash && catkin_make --pkg hrwros_week5 hrwros_msgs
+#RUN cd ~/catkin_ws && source /opt/ros/noetic/setup.bash
+
 
 RUN echo "Done, now execute:"
-#RUN echo "cd ~/ros2_ws/src && ./ros_exam_auto.sh"
-
-
-# docker build -t r1_ros_edx_course .  
-# docker run -e DISPLAY=host.docker.internal:0.0 -e LIBGL_ALWAYS_INDIRECT=0 --gpus all -it r1_ros_edx_course  
