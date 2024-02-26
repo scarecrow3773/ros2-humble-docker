@@ -104,8 +104,12 @@ RUN source $COLCON_WS/install/setup.bash
 #SHELL ["/bin/bash", "-c"] 
 #RUN cd ~/ros2_ws && source /opt/ros/humble/setup.bash
 
+# Moveit2 Docker yaml: https://raw.githubusercontent.com/ros-planning/moveit2_tutorials/main/.docker/docker-compose.yml
+# https://moveit.picknik.ai/main/doc/how_to_guides/how_to_setup_docker_containers_in_ubuntu.html
 
+# Tutorial: https://moveit.picknik.ai/main/doc/tutorials/quickstart_in_rviz/quickstart_in_rviz_tutorial.html
 
+# Universal Robot: https://github.com/ros-industrial/universal_robot
 
 RUN echo "Done, now execute:"
 RUN echo "cd ~/ros2_ws/src && ./ros_exam_auto.sh"
